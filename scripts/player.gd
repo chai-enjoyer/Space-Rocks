@@ -1,5 +1,8 @@
 extends RigidBody2D
 
+signal lives_changed
+signal dead
+
 @export var engine_power = 500
 @export var spin_power = 8000
 @export var bullet_scene : PackedScene
@@ -10,6 +13,9 @@ var screensize = Vector2.ZERO
 var thrust = Vector2.ZERO
 var rotation_dir = 0
 var radius
+var reset_pos = false
+var lives = 0: set = set_lives
+
 
 enum {
 	INIT,
@@ -39,17 +45,27 @@ func _integrate_forces(physics_state: PhysicsDirectBodyState2D) -> void:
 	xform.origin.x = wrapf(xform.origin.x, 0 - radius, screensize.x + radius)
 	xform.origin.y = wrapf(xform.origin.y, 0 - radius, screensize.y + radius)
 	physics_state.transform = xform
+	if reset_pos:
+		physics_state.transform.origin = screensize / 2
+		reset_pos = false
 
 func change_state(new_state) -> void:
 	match new_state:
 		INIT:
 			$CollisionShape2D.set_deferred("disabled", true)
+			$Sprite2D.modulate.a = 0.5
 		ALIVE:
 			$CollisionShape2D.set_deferred("disabled", false)
+			$Sprite2D.modulate.a = 1
 		INVURNELABLE:
 			$CollisionShape2D.set_deferred("disabled", true)
+			$Sprite2D.modulate.a = 0.5
+			$InvulerabilityTimer.start()
 		DEAD:
 			$CollisionShape2D.set_deferred("disabled", true)
+			$Sprite2D.hide()
+			linear_velocity = Vector2.ZERO
+			dead.emit()
 	state = new_state
 
 func get_input() ->void:
@@ -71,6 +87,37 @@ func shoot() -> void:
 	get_tree().root.add_child(b)
 	b.start($Muzzle.global_transform)
 
+func set_lives(value) -> void:
+	lives = value
+	lives_changed.emit(lives)
+	if lives <= 0:
+		change_state(DEAD)
+	else:
+		change_state(INVURNELABLE)
+
+func reset() -> void:
+	reset_pos = true
+	$Sprite2D.show()
+	lives = 3
+	change_state(ALIVE)
+
+func explode() -> void:
+	$Explosion.show()
+	$Explosion/AnimationPlayer.play("explosion")
+	await $Explosion/AnimationPlayer.animation_finished
+	$Explosion.hide()
+
 
 func _on_gun_cooldown_timeout() -> void:
 	can_shoot = true
+
+
+func _on_invulerability_timer_timeout() -> void:
+	change_state(ALIVE)
+
+
+func _on_body_entered(body: Node) -> void:
+	if body.is_in_group("rocks"):
+		body.explode()
+		lives -= 1
+		explode()
