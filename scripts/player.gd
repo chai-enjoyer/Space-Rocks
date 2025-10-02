@@ -2,11 +2,15 @@ extends RigidBody2D
 
 signal lives_changed
 signal dead
+signal shield_changed
 
 @export var engine_power = 500
 @export var spin_power = 8000
 @export var bullet_scene : PackedScene
 @export var fire_rate = 0.25
+@export var max_shield = 100.0
+@export var shield_regen = 5.0
+
 
 var can_shoot = true
 var screensize = Vector2.ZERO
@@ -15,6 +19,8 @@ var rotation_dir = 0
 var radius
 var reset_pos = false
 var lives = 0: set = set_lives
+var shield = 0: set = set_shield
+
 
 
 enum {
@@ -35,6 +41,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	get_input()
+	shield += shield_regen * delta
 
 func _physics_process(delta: float) -> void:
 	constant_force = thrust
@@ -94,6 +101,15 @@ func set_lives(value) -> void:
 		change_state(DEAD)
 	else:
 		change_state(INVURNELABLE)
+	shield = max_shield
+
+func set_shield(value) -> void:
+	value = min(value, max_shield)
+	shield = value
+	shield_changed.emit(shield / max_shield)
+	if shield <= 0:
+		lives -= 1
+		explode()
 
 func reset() -> void:
 	reset_pos = true
@@ -118,6 +134,5 @@ func _on_invulerability_timer_timeout() -> void:
 
 func _on_body_entered(body: Node) -> void:
 	if body.is_in_group("rocks"):
+		shield -= body.size * 25
 		body.explode()
-		lives -= 1
-		explode()
