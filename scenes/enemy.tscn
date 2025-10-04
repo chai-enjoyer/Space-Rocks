@@ -1,10 +1,13 @@
-[gd_scene load_steps=9 format=3 uid="uid://cob5g3dw2tvy"]
+[gd_scene load_steps=14 format=3 uid="uid://cob5g3dw2tvy"]
 
 [ext_resource type="Script" uid="uid://b2fhl4u4866ir" path="res://scripts/enemy.gd" id="1_5uy6h"]
 [ext_resource type="Texture2D" uid="uid://bxki7hg0b0110" path="res://assets/enemy_saucer.png" id="2_c4w8v"]
 [ext_resource type="PackedScene" uid="uid://crxxrf3eii3mk" path="res://scenes/enemy_bullet.tscn" id="2_xwavj"]
 [ext_resource type="PackedScene" uid="uid://bcaqykjf2jhc6" path="res://scenes/enemy_paths.tscn" id="3_xwavj"]
 [ext_resource type="PackedScene" uid="uid://b4i3us7vbjwd5" path="res://scenes/explosion.tscn" id="4_nenq2"]
+[ext_resource type="AudioStream" uid="uid://c2xm1bi2qius" path="res://assets/sounds/laser.ogg" id="6_nenq2"]
+[ext_resource type="AudioStream" uid="uid://bmyyfvou1jeit" path="res://assets/sounds/explosion.wav" id="7_md484"]
+[ext_resource type="Texture2D" uid="uid://dlk7hxh1rpj7" path="res://assets/corona.png" id="8_md484"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_md484"]
 radius = 36.05551
@@ -31,6 +34,13 @@ _data = {
 &"flash": SubResource("Animation_ipns3")
 }
 
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_ipns3"]
+blend_mode = 1
+
+[sub_resource type="Curve" id="Curve_8qclf"]
+_data = [Vector2(0.0058139563, 0.97752815), 0.0, 0.0, 0, 0, Vector2(1, 0.123595595), 0.0, 0.0, 0, 0]
+point_count = 2
+
 [node name="Enemy" type="Area2D" groups=["enemies"]]
 script = ExtResource("1_5uy6h")
 bullet_scene = ExtResource("2_xwavj")
@@ -56,6 +66,25 @@ visible = false
 [node name="GunCooldown" type="Timer" parent="."]
 wait_time = 1.5
 autostart = true
+
+[node name="LaserSound" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("6_nenq2")
+volume_db = -10.0
+
+[node name="ExplosionSound" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("7_md484")
+
+[node name="CPUParticles2D" type="CPUParticles2D" parent="."]
+show_behind_parent = true
+material = SubResource("CanvasItemMaterial_ipns3")
+amount = 20
+texture = ExtResource("8_md484")
+emission_shape = 1
+emission_sphere_radius = 25.0
+gravity = Vector2(0, 0)
+scale_amount_min = 0.1
+scale_amount_max = 0.1
+scale_amount_curve = SubResource("Curve_8qclf")
 
 [connection signal="body_entered" from="." to="." method="_on_body_entered"]
 [connection signal="timeout" from="GunCooldown" to="." method="_on_gun_cooldown_timeout"]

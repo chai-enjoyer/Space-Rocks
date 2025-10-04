@@ -28,6 +28,7 @@ func shoot() -> void:
 	var b = bullet_scene.instantiate()
 	get_tree().root.add_child(b)
 	b.start(global_position, dir)
+	$LaserSound.play()
 
 func shoot_pulse(n, delay) -> void:
 	for i in n:
@@ -47,6 +48,7 @@ func explode() -> void:
 	$Sprite2D.hide()
 	$Explosion.show()
 	$Explosion/AnimationPlayer.play("explosion")
+	$ExplosionSound.play()
 	await $Explosion/AnimationPlayer.animation_finished
 	queue_free()
 
