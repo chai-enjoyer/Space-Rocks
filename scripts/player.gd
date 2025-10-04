@@ -33,7 +33,7 @@ enum {
 var state = INIT
 
 func _ready() -> void:
-	change_state(ALIVE)
+	change_state(state)
 	screensize = get_viewport_rect().size
 	radius = int($Sprite2D.texture.get_size().x)
 	$GunCooldown.wait_time = fire_rate
@@ -55,6 +55,9 @@ func _integrate_forces(physics_state: PhysicsDirectBodyState2D) -> void:
 	if reset_pos:
 		physics_state.transform.origin = screensize / 2
 		reset_pos = false
+
+func start_game() -> void:
+	change_state(ALIVE)
 
 func change_state(new_state) -> void:
 	match new_state:

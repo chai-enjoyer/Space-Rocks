@@ -12,7 +12,11 @@ var playing = false
 
 func _ready() -> void:
 	screensize = get_viewport().get_visible_rect().size
-	for i in 3:
+	$Music.play()
+	$Player.hide()
+	#get_tree().call_group("rocks", "queue_free")
+	$HUD/MarginContainer/HBoxContainer.hide()
+	for i in 6:
 		spawn_rock(3)
 
 func _process(delta: float) -> void:
@@ -35,8 +39,6 @@ func _input(event: InputEvent) -> void:
 			message.hide()
 			
 
-
-
 func spawn_rock(size, pos=null, vel=null) -> void:
 	if pos == null:
 		$RockPath/RockSpawn.progress = randi()
@@ -50,7 +52,9 @@ func spawn_rock(size, pos=null, vel=null) -> void:
 	r.exploded.connect(self._on_rock_exploded)
 
 func new_game() -> void:
-	$Music.play()
+	$Player.show()
+	$HUD/MarginContainer/HBoxContainer.show()
+	$Player.start_game()
 	get_tree().call_group("rocks", "queue_free")
 	level = 0
 	score = 0
@@ -73,6 +77,10 @@ func game_over() -> void:
 	$HUD.game_over()
 	$Music.stop()
 
+func add_score(value) -> void:
+	score += value
+	$HUD/MarginContainer/HBoxContainer/ScoreLabel.text = str(score)
+
 func _on_rock_exploded(size, radius, pos, vel) -> void:
 	$ExplosionSound.play()
 	if size <= 1:
@@ -88,5 +96,6 @@ func _on_rock_exploded(size, radius, pos, vel) -> void:
 func _on_enemy_timer_timeout() -> void:
 	var e = enemy_scene.instantiate()
 	add_child(e)
+	e.enemy_dead.connect(add_score)
 	e.target = $Player
 	$EnemyTimer.start(randf_range(20, 40))

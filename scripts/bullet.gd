@@ -1,6 +1,8 @@
 extends Area2D
 
+
 @export var speed = 1000
+
 
 var velocity = Vector2.ZERO
 
@@ -11,7 +13,6 @@ func _process(delta: float) -> void:
 func start(_transform) -> void:
 	transform = _transform
 	velocity = transform.x * speed
-
 
 
 func _on_visible_on_screen_notifier_2d_screen_exited() -> void:

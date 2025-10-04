@@ -1,5 +1,7 @@
 extends Area2D
 
+signal enemy_dead
+
 @export var bullet_scene : PackedScene
 @export var speed = 150
 @export var rotation_speed = 120
@@ -50,6 +52,7 @@ func explode() -> void:
 	$Explosion/AnimationPlayer.play("explosion")
 	$ExplosionSound.play()
 	await $Explosion/AnimationPlayer.animation_finished
+	enemy_dead.emit(1)
 	queue_free()
 
 func _on_gun_cooldown_timeout() -> void:
